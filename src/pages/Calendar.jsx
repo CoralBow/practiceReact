@@ -28,7 +28,7 @@ function useHolidays() {
           "https://holidays-jp.github.io/api/v1/date.json"
         );
         const data = await res.json();
-        setHolidays(data);  // object内容: { "2025-01-01": "元日", ... }
+        setHolidays(data); // object内容: { "2025-01-01": "元日", ... }
       } catch (error) {
         if (error.name !== "AbortError") setError("祝日の取得に失敗しました");
       }
@@ -130,13 +130,13 @@ function Calendar({ tasks, setTasks, weatherData, mapWeatherCode }) {
   }
 
   const detailRefs = useRef({});
-  const handleDayClick = (dayStr) => {
-    setSelectedDay(dayStr);
-    const el = detailRefs.current[dayStr];
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
+  useEffect(() => {
+    if (!selectedDay) return;
+    const el = detailRefs.current[selectedDay];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedDay]);
+  const handleDayClick = (dayStr) => setSelectedDay(dayStr);
+
   if (!weatherData || Object.keys(weatherData).length === 0) {
     return (
       <p className="text-center text-gray-500">⏳ カレンダーを読み込み中…</p>
@@ -297,7 +297,12 @@ function Calendar({ tasks, setTasks, weatherData, mapWeatherCode }) {
       </div>
       <div>
         {selectedDay && (
-          <div className="mt-4 p-4 border rounded">
+          <div
+            ref={(el) => {
+              if (el) detailRefs.current[selectedDay] = el;
+            }}
+            className="mt-4 p-4 border rounded"
+          >
             <h3 className="font-semibold">{selectedDay} の予定</h3>
             <button
               onClick={() => navigate(`/todo?date=${selectedDay}`)}
